@@ -8,7 +8,14 @@ if (!port) {
     console.log('请指定端口号好不啦？\nnode server.js 8888 这样不会吗？')
     process.exit(1)
 }
-
+var get_cookies = function(request) {
+    var cookies = {};
+    request.headers && request.headers.cookie.split(';').forEach(function(cookie) {
+        var parts = cookie.match(/(.*?)=(.*)$/)
+        cookies[parts[1].trim()] = (parts[2] || '').trim();
+    });
+    return cookies;
+}
 var server = http.createServer(function(request, response) {
     var parsedUrl = url.parse(request.url, true)
     var pathWithQuery = request.url
@@ -49,7 +56,10 @@ var server = http.createServer(function(request, response) {
 
     } else if (path === '/home.html') {
         const cookie = request.headers['cookie']
-        if (cookie === "logined=1") {
+        const myCookie = get_cookies(request)['logined']
+            // console.log(cookie)
+        console.log(myCookie)
+        if (myCookie === "1") {
             console.log('123123')
             const homeHtml = fs.readFileSync('./public/home.html').toString()
             const string = homeHtml.replace('{{loginStatus}}', '已登录')
@@ -59,7 +69,7 @@ var server = http.createServer(function(request, response) {
             const string = homeHtml.replace('{{loginStatus}}', '未登录')
             response.write(string)
         }
-        console.log(cookie)
+
         response.end('home')
     } else if (path === '/regist' && method === 'POST') {
         response.setHeader('Content-Type', 'text/html;charset=utf-8')
